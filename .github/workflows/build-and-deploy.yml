@@ -40,3 +40,25 @@ jobs:
       - run: npm install
       # Build de l'application
       - run: npm run build --production
+      # Démarrage d'un environnement pour pouvoir démarrer une machine virtuelle
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      # Démarrage d'une machine virtuelle docker (pour pouvoir faire le build)
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      # Création d'une nouvelle variable d'env qui contient le nom du projet
+      # mais en minuscule pour pouvoir l'utiliser dans le nom de l'image docker
+      - name: Store repository lowercase
+        run:
+          echo "GITHUB_REPOSITORY=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
+
+      # Build et push de l'image docker sur la registry docker de github
+      -
+        name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ env.GITHUB_REPOSITORY }}:${{ github.sha }}

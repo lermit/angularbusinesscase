@@ -1,5 +1,6 @@
 stages:
   - build
+  - package
 
 build de l'application:
   stage: build
@@ -17,3 +18,14 @@ build de l'application:
   artifacts:
     paths:
       - dist/
+
+create image:
+  stage: package
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA ./
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+
