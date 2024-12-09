@@ -1,0 +1,42 @@
+# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/use-cases-and-examples/building-and-testing/building-and-testing-java-with-maven
+
+name: Build Angular and deploy to render
+
+# Permet de spécifier sur quelle branche on va lancer les jobs
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    # Ici nous selectionnons la ou les version de java cible.
+    strategy:
+      matrix:
+        node-version: [ '22' ]
+
+    steps:
+      # Connexion sur le registry docker de github
+      - name: Login to Github Repository
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      # Download du code source
+      - uses: actions/checkout@v4
+      # Démarrage d'un environment NodeJS avec la version spécifié plus haut
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      # Installer les dépendances d'anguler
+      - run: npm install
+      # Build de l'application
+      - run: npm run build --production

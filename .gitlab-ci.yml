@@ -1,0 +1,19 @@
+stages:
+  - build
+
+build de l'application:
+  stage: build
+  image: node:22
+  cache:
+    key:
+      files:
+        - package.json
+        - package-lock.json
+    paths:
+      - ./.npm/
+  script:
+    - npm ci npm ci --cache .npm --prefer-offline
+    - npm run build --production
+  artifacts:
+    paths:
+      - dist/
